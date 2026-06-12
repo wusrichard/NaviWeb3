@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "NaviWeb3",
+  "version": "1.0.0",
+  "description": "DeFi 操作路徑 AI 顧問 — 讓 AI Agent 幫你找最佳 weETH 操作路徑",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "NaviWeb3"
+  },
+  "host_permissions": [
+    "http://localhost:8000/*"
+  ],
+  "permissions": []
+}

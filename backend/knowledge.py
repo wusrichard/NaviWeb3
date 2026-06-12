@@ -1,0 +1,32 @@
+KNOWLEDGE = {
+    "etherfi": [
+        "EtherFi 是去中心化流動性再質押協議（Liquid Restaking Protocol），讓用戶存入 ETH 同時獲得 EigenLayer 再質押收益。持有 weETH 即自動累積質押獎勵，目前年化報酬率（APY）約 3–5%，並額外獲得 EtherFi Points 與 EigenLayer Points，可能轉換為 ETHFI 代幣空投。",
+        "存入 ETH 獲得 eETH 步驟：① 前往 app.ether.fi ② 點擊「Stake」③ 輸入 ETH 數量 ④ 確認 MetaMask 交易 ⑤ 收到 eETH。Gas 費約 $5–20 USD，無存款手續費。",
+        "將 eETH 包裝成 weETH 步驟：① 在 app.ether.fi 點擊「Wrap」② 輸入 eETH 數量 ③ 確認交易 ④ 收到 weETH。Gas 費約 $3–10 USD。weETH 是計息代幣，價值隨時間自動成長，適合長期持有或在 DeFi 中使用。",
+        "weETH 兌換回 ETH 方式有兩種：① 官方 Unstake：在 app.ether.fi 點擊「Unstake」，有 7–14 天解鎖等待期，費用 0.1% 提款手續費。② 即時兌換：透過 Curve 或 Uniswap 的 weETH/ETH 流動性池，可立即換出，滑點約 0.1–0.3%，Gas 費約 $5–15 USD。",
+        "在 DeFi 使用 weETH 賺取更多收益：① Aave V3 抵押借款：存入 weETH 作為抵押品，借出 USDC/ETH，LTV 約 72.5%。② Curve weETH/ETH 池：提供流動性賺取交易手續費 + CRV 獎勵，額外 APY 約 2–4%。③ Pendle Finance：將未來收益代幣化，鎖定固定利率或交易 YT 代幣。",
+        "費用總覽：存款手續費 0%、提款手續費 0.1%、協議費 10%（從質押獎勵中扣取）、Gas 費視網路狀況約 $3–20 USD 每次操作。",
+        "風險提示：① 智能合約漏洞風險 ② EigenLayer AVS Slashing 罰款風險（節點運營商操作失誤可能損失部分 ETH）③ 流動性風險（大量贖回時二級市場折價）。建議僅投入可承受損失的資金，分散配置。",
+        "EtherFi 積分系統：每持有 1 weETH 每天獲得 24 EtherFi Points（參照活動期間），另獲得等額 EigenLayer Points。積分可能在 TGE 時按比例轉換為 ETHFI 空投，歷史上首次空投約佔總供應量 6%。",
+    ],
+    "curve": [
+        "Curve Finance 是專注穩定幣和同類資產（如 ETH/stETH、USDC/USDT）的去中心化交易所（DEX），採用 StableSwap 算法提供極低滑點，手續費僅 0.04%，TVL 超 30 億美元。",
+        "在 Curve 兌換穩定幣步驟：① 前往 curve.fi ② 點擊「Swap」③ 選擇輸入代幣（如 USDC）與輸出代幣（如 USDT）④ 輸入金額，確認預估滑點 ⑤ 點擊「Swap」確認 MetaMask 交易。手續費 0.04%，$10,000 兌換費用約 $4，遠低於 Uniswap 的 0.3%。",
+        "提供流動性賺取手續費步驟：① 前往 curve.fi/pools ② 選擇流動性池（推薦新手：3pool = USDC/USDT/DAI）③ 點擊「Deposit」④ 選擇存入代幣及數量（可單幣存入）⑤ 確認交易，Gas 費約 $15–40 USD ⑥ 獲得 LP Token，每日自動賺取交易手續費，穩定幣池 APY 約 1–3%。",
+        "質押 LP Token 賺取 CRV 獎勵步驟：① 取得 LP Token 後前往對應 Gauge 頁面 ② 點擊「Stake」輸入數量 ③ 確認交易，Gas 費約 $10–20 USD ④ 開始賺取 CRV 代幣獎勵，額外 APY 約 5–15%，視池子和 veCRV 加成而定。",
+        "鎖定 CRV 獲得 veCRV（Curve 治理權）步驟：① 前往 curve.fi/locker ② 選擇鎖定期限（最短 1 週，最長 4 年）③ 輸入 CRV 數量確認交易 ④ 獲得 veCRV：可提升個人流動性獎勵最多 2.5 倍（Boost），並每週獲得平台 50% 手續費分紅（以 3CRV 形式發放）。",
+        "weETH/ETH 池操作（即時換 ETH 最佳路徑）：① 前往 curve.fi，搜尋「weETH」② 選擇 weETH→ETH 方向 ③ 確認滑點（通常 0.05–0.15%）④ 確認交易。此路徑比官方解鎖快 7–14 天，適合急需 ETH 流動性的情境，總費用約 $8–20 USD（含 Gas）。",
+        "費用結構詳解：交易手續費 0.04%（其中 50% 給流動性提供者，50% 給 veCRV 持有者）。存款/提款無額外手續費，但大額單幣存入/提出可能產生 0.01–0.2% 不平衡費用（imbalance fee）。",
+        "無常損失（Impermanent Loss）風險：穩定幣對之間（USDC/USDT/DAI）IL 幾乎可忽略不計（<0.1%）。ETH 類資產對（weETH/ETH）IL 極低（<0.5%）。跨資產對（ETH/BTC）IL 較高，需謹慎評估。",
+    ],
+    "hyperliquid": [
+        "Hyperliquid 是高效能去中心化永續合約交易所，建立在自研 L1 區塊鏈上，每秒處理 2 萬筆訂單，支持 100+ 交易對，日交易量超 20 億美元，無需 Gas 費下單。",
+        "beHYPE 是 Hyperliquid 的流動性質押代幣（Liquid Staking Token），質押 HYPE 自動獲得複利質押獎勵，目前 APY 約 3–7%，持有 beHYPE 期間價值持續增長，無需手動 Claim 獎勵。",
+        "質押 HYPE 獲得 beHYPE 步驟：① 前往 app.hyperliquid.xyz/staking ② 連接錢包（支援 MetaMask、Phantom 等）③ 輸入 HYPE 數量 ④ 點擊「Stake」確認交易 ⑤ 收到 beHYPE。Hyperliquid L1 Gas 費極低（<$0.01），幾乎免費。",
+        "beHYPE 換回 HYPE 方式：① 官方 Unstake：點擊「Unstake」，有 1 天解鎖期，無手續費。② 二級市場即時兌換：在 Hyperliquid 現貨市場或外部 DEX 直接賣出 beHYPE，滑點約 0.1–0.2%，適合急需流動性時使用。",
+        "永續合約交易步驟：① 前往 app.hyperliquid.xyz ② 選擇交易對（如 ETH-PERP）③ 選擇做多（Long）或做空（Short）④ 設置槓桿（最高 50x，新手建議 2–5x）⑤ 輸入保證金金額 ⑥ 選擇市價單或限價單 ⑦ 確認開倉。Taker 手續費 0.035%，Maker 手續費 -0.01%（回扣，掛單成交反而賺手續費）。",
+        "資金費率（Funding Rate）機制：每 8 小時結算一次，多空雙方互相支付，費率根據市場多空比例動態調整，通常介於 -0.05% 至 +0.05% 每 8 小時（換算年化 -21.9% 至 +21.9%）。持有多頭在行情偏多時需支付資金費，空頭則收取，反之亦然。",
+        "從 Hyperliquid 出金到以太坊主網步驟：① 在 Hyperliquid 介面點擊「Withdraw」② 輸入 USDC 數量 ③ 確認目標以太坊地址 ④ 確認交易，手續費約 1 USDC，到帳時間約 1–2 分鐘，使用官方橋接合約，安全可靠。",
+        "風險管理建議：① 永續合約設置止損單（Stop Loss）避免強制平倉，建議保證金率保持在 20% 以上 ② 槓桿越高爆倉風險越大，$1,000 保證金開 10x 槓桿，ETH 下跌 10% 即爆倉 ③ beHYPE 質押風險較低，但仍有智能合約漏洞和 HYPE 幣價波動風險 ④ 建議新手先用小倉位熟悉機制。",
+    ],
+}

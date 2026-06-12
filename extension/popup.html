@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NaviWeb3</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 380px;
+      min-height: 480px;
+      background: #0d0f1a;
+      color: #e2e8f0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1f35 0%, #0d1224 100%);
+      border-bottom: 1px solid #2d3748;
+      padding: 16px 20px 12px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #818cf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: #64748b;
+      margin-left: 36px;
+    }
+
+    .main {
+      padding: 16px 20px;
+    }
+
+    .label {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 6px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .protocol-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .protocol-btn {
+      flex: 1;
+      padding: 8px 4px;
+      background: #1a1f35;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .protocol-btn:hover {
+      border-color: #6366f1;
+      color: #c7d2fe;
+    }
+
+    .protocol-btn.active {
+      background: linear-gradient(135deg, #312e81, #1e1b4b);
+      border-color: #6366f1;
+      color: #a5b4fc;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: #1a1f35;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 13px;
+      resize: none;
+      height: 80px;
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 12px;
+      font-family: inherit;
+      line-height: 1.5;
+    }
+
+    textarea::placeholder { color: #475569; }
+    textarea:focus { border-color: #6366f1; }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .btn-submit {
+      flex: 1;
+      padding: 10px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-submit:hover { opacity: 0.88; }
+    .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-clear {
+      padding: 10px 14px;
+      background: #1a1f35;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      color: #64748b;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-clear:hover { border-color: #ef4444; color: #f87171; }
+
+    .result-box {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 14px;
+      min-height: 120px;
+      line-height: 1.7;
+      font-size: 13px;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .result-box.empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #334155;
+      font-size: 12px;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #6366f1;
+      font-size: 13px;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #312e81;
+      border-top-color: #818cf8;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error { color: #f87171; font-size: 13px; }
+
+    .footer {
+      padding: 10px 20px;
+      border-top: 1px solid #1e293b;
+      font-size: 10px;
+      color: #334155;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🧭</div>
+    <span class="logo-text">NaviWeb3</span>
+  </div>
+  <div class="subtitle">DeFi 操作路徑 AI 顧問</div>
+</div>
+
+<div class="main">
+  <div class="label">選擇協議</div>
+  <div class="protocol-group">
+    <button class="protocol-btn active" data-protocol="etherfi">ether.fi</button>
+    <button class="protocol-btn" data-protocol="curve">Curve</button>
+    <button class="protocol-btn" data-protocol="hyperliquid">Hyperliquid</button>
+  </div>
+
+  <div class="label">你的問題</div>
+  <textarea id="question" placeholder="例如：weETH 怎麼換回 ETH 最方便？費用多少？"></textarea>
+
+  <div class="btn-row">
+    <button class="btn-submit" id="submitBtn">詢問 AI 顧問</button>
+    <button class="btn-clear" id="clearBtn">清除</button>
+  </div>
+
+  <div class="label">建議</div>
+  <div class="result-box empty" id="resultBox">等待你的問題…</div>
+</div>
+
+<div class="footer">Powered by Z.AI GLM-4-Flash · NaviWeb3</div>
+
+<script>
+  const API_URL = 'http://localhost:8000/query';
+  let selectedProtocol = 'etherfi';
+
+  // protocol selector
+  document.querySelectorAll('.protocol-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.protocol-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedProtocol = btn.dataset.protocol;
+    });
+  });
+
+  // clear
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    document.getElementById('question').value = '';
+    const box = document.getElementById('resultBox');
+    box.textContent = '等待你的問題…';
+    box.className = 'result-box empty';
+  });
+
+  // submit
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const question = document.getElementById('question').value.trim();
+    if (!question) return;
+
+    const btn = document.getElementById('submitBtn');
+    const box = document.getElementById('resultBox');
+
+    btn.disabled = true;
+    box.className = 'result-box';
+    box.innerHTML = '<div class="loading"><div class="spinner"></div>AI 顧問思考中…</div>';
+
+    try {
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ protocol: selectedProtocol, question }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${resp.status}`);
+      }
+
+      const data = await resp.json();
+      box.className = 'result-box';
+      box.textContent = data.suggestion || '（未收到回應）';
+    } catch (e) {
+      box.className = 'result-box';
+      box.innerHTML = `<span class="error">⚠️ ${e.message}</span>`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // enter to submit (shift+enter for newline)
+  document.getElementById('question').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById('submitBtn').click();
+    }
+  });
+</script>
+
+</body>
+</html>
