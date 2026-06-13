@@ -1,97 +1,112 @@
 # NaviWeb3
 
-Chrome 擴充功能，讀取你的錢包持倉，透過 AI 查詢即時兌換報價，給出具體 DeFi 操作步驟。
-
-## Problem / Solution
-
-| Problem | Solution |
-|---|---|
-| 不知道 USDC 換 ETH 哪邊最便宜 | 串接 Paraswap API 即時比較路由與 Gas |
-| DeFi 操作步驟複雜、費用難估算 | AI 根據真實持倉給出具體步驟與數字 |
-| 每次都要手動查詢、手動輸入 | 快捷按鈕一鍵帶入持倉自動查詢 |
-
-## Tech Stack
-
-| 層 | 技術 |
-|---|---|
-| 前端 | Chrome Extension (Manifest V3) |
-| 後端 | Python FastAPI |
-| 即時報價 | Paraswap Aggregation API（免費，無需 key） |
-| 語意搜尋 | Z.AI Embedding API (embedding-3) + cosine similarity |
-| 重排序 | Z.AI Rerank API |
-| 生成 | Z.AI GLM-4-Flash |
-| 錢包讀取 | MetaMask / Rabby `window.ethereum` |
+> **一句話簡介**：Chrome 擴充功能，讀取你的 MetaMask / Rabby 持倉，即時查詢最佳兌換路由，用 AI 生成具體 DeFi 操作步驟。
 
 ---
 
-## 安裝步驟
+## 項目背景
 
-### 1. 後端
+DeFi 用戶每次操作都需要：
+1. 手動查詢各平台匯率（Curve / Uniswap / 1inch）
+2. 估算 Gas 費
+3. 搜尋操作步驟文件
+
+NaviWeb3 把這三步壓縮成一個動作：打開插件、點快捷按鈕、30 秒內拿到含真實報價的操作指南。
+
+## 目標用戶
+
+- DeFi 新手：不知道怎麼把 USDC 換成 ETH 最划算
+- 中級用戶：每次操作都要切換多個平台比較費率
+- 任何持有 weETH / USDC 的錢包用戶
+
+---
+
+## 核心功能
+
+| 功能 | 說明 |
+|---|---|
+| 🔗 讀取錢包持倉 | 透過 `window.ethereum` 讀取 ETH / weETH / USDC 餘額，持久化存儲 |
+| ⚡ 快捷操作按鈕 | 一鍵帶入持倉，自動填入查詢（USDC→ETH、ETH→weETH 等） |
+| 📊 即時報價 | 串接 Paraswap Aggregation API，回傳最佳路由與 Gas 費用 |
+| 🤖 AI 步驟說明 | Z.AI GLM-4-Flash 根據即時報價 + 知識庫生成繁體中文操作步驟 |
+| 🔍 語意搜尋 | Z.AI Embedding + Rerank 從 DeFi 知識庫精選最相關段落 |
+
+---
+
+## 技術架構
+
+```
+Chrome Extension (popup.html + popup.js)
+    │
+    ├── window.ethereum → 讀取 MetaMask / Rabby 持倉餘額
+    │
+    └── fetch POST http://localhost:8000/query
+              │
+         FastAPI (backend/main.py)
+              │
+              ├── Paraswap API → 即時兌換報價（最佳路由 + Gas）
+              │
+              ├── Z.AI Embedding API → 問題向量化
+              │        ↓
+              ├── Cosine Similarity → 知識庫搜尋 Top-5
+              │        ↓
+              ├── Z.AI Rerank API → 精選 Top-2 段落
+              │        ↓
+              └── Z.AI GLM-4-Flash → 整合報價 + 知識庫，生成操作建議
+```
+
+## 使用的 API / SDK / AI 工具
+
+| 工具 | 用途 |
+|---|---|
+| Z.AI Embedding (`embedding-3`) | 語意搜尋知識庫 |
+| Z.AI Rerank | 重排序候選段落 |
+| Z.AI GLM-4-Flash | 生成中文操作建議 |
+| Paraswap Aggregation API | 即時兌換報價（免費，無需 API Key）|
+| MetaMask / Rabby `window.ethereum` | 讀取用戶錢包餘額 |
+| Claude Code | 輔助開發 |
+
+---
+
+## 安裝與運行
+
+### 環境需求
+- Python 3.11+
+- Chrome 瀏覽器 + MetaMask 或 Rabby 錢包
+
+### 後端
 
 ```bash
 git clone https://github.com/wusrichard/NaviWeb3.git
 cd NaviWeb3/backend
 
-# 建立虛擬環境（需要 Python 3.11+）
 python3 -m venv .venv && source .venv/bin/activate
-
-# 安裝依賴
 pip install -r requirements.txt
 
-# 設定 API Key
 cp ../.env.example .env
-# 編輯 .env，填入你的 Z.AI API Key：
-# ZAI_API_KEY=your_key_here
+# 編輯 .env，填入 Z.AI API Key：ZAI_API_KEY=your_key_here
 
-# 啟動 server
 uvicorn main:app --port 8000 --reload
 ```
 
-### 2. Chrome 擴充功能
+### Chrome 擴充功能
 
-1. 開啟 Chrome，網址列輸入 `chrome://extensions`
-2. 右上角開啟「**開發人員模式**」
-3. 點「**載入未封裝項目**」→ 選擇專案內的 `extension/` 資料夾
-4. 工具列出現 🧭 NaviWeb3 圖示即完成
-
-> 每次開瀏覽器後，需先啟動後端 server，插件才能正常運作。
+1. `chrome://extensions` → 開啟「開發人員模式」
+2. 「載入未封裝項目」→ 選擇 `extension/` 資料夾
+3. 工具列出現 🧭 NaviWeb3 圖示即完成
 
 ---
 
 ## 操作示範流程
 
-### Step 1：連接錢包
+**Step 1** — 開啟任意 https:// 網站（如 `https://app.ether.fi`），點插件 → 「連接錢包」
 
-1. 確保 MetaMask 或 Rabby 已安裝並解鎖
-2. 開啟任意 https:// 網站（例如 `https://app.ether.fi`）
-3. 點擊工具列 🧭 NaviWeb3 圖示
-4. 點「**連接錢包**」→ 在錢包彈窗中授權
+**Step 2** — 頂部顯示持倉：`0xAbcd...1234 · Ethereum｜ETH: 0.52｜weETH: 0.30｜USDC: 150`
 
-連接成功後，頂部顯示：
-```
-0xAbcd...1234 · Ethereum     ETH: 0.5231   weETH: 0.3000   USDC: 150.00
-```
+**Step 3** — 點快捷按鈕「USDC → ETH」，自動填入問題（含真實持倉數字）
 
-### Step 2：使用快捷按鈕
+**Step 4** — 按 Enter，30 秒內收到：
 
-點任一快捷按鈕，自動帶入你的實際持倉：
-
-| 按鈕 | 自動填入內容 |
-|---|---|
-| USDC → ETH | 我有 150.00 USDC，想換成 ETH，透過 Curve 最划算的路徑是？ |
-| ETH → weETH | 我有 0.5231 ETH，想質押成 weETH 賺利息，步驟和費用是？ |
-| weETH → ETH | 我有 0.3000 weETH，想換回 ETH，最快路徑和費用是？ |
-| 查看收益 | 我持有 0.5231 ETH 和 0.3000 weETH，各協議年化收益如何？ |
-
-### Step 3：送出查詢
-
-按 **Enter** 或點「詢問 AI 顧問」，AI 回應包含：
-
-- 📊 **Paraswap 即時報價**：實際換出數量、最佳路由、Gas 費用
-- 📋 **具體操作步驟**：逐步說明，附每步費用數字
-- 💰 **預期年化收益**：各協議 APY 比較
-
-**範例回應：**
 ```
 【即時報價 via Paraswap】
 150 USDC → 0.04821 ETH
@@ -99,42 +114,60 @@ uvicorn main:app --port 8000 --reload
 預估 Gas：$3.42 USD
 
 操作步驟：
-① 前往 curve.fi，選擇 USDC/ETH 池...
-② 輸入 150 USDC，確認滑點 < 0.1%...
-③ 確認交易，Gas 費約 $3-5 USD...
+① 前往 curve.fi，選擇 USDC → ETH 兌換...
+② 確認滑點 < 0.1%，Gas 費約 $3-5 USD...
+③ 點擊 Swap，在 MetaMask 確認交易...
 ```
 
-### Step 4：自訂問題
+---
 
-也可以直接輸入問題，AI 自動偵測協議：
-- 提到 USDC / Curve / swap → 選 Curve
-- 提到 Hyperliquid / HYPE / 永續 → 選 Hyperliquid
-- 其他 → 預設 EtherFi
+## 鏈上 / 測試網證據
+
+| 項目 | 值 |
+|---|---|
+| Cobo Agentic Wallet 地址 | `0x1f066352df53d05737872598575cb6e828a77eec` |
+| Wallet UUID | `2f654afd-3a9e-4029-9212-e79350f8b1e5` |
+| 測試網路 | Sepolia Testnet (Chain ID: 11155111) |
+| Paraswap API 查詢 | 每次插件查詢即發生鏈上報價請求（Ethereum Mainnet 路由） |
 
 ---
 
-## Z.AI API 說明
+## 當前完成度
 
-| API | 用途 | Model |
+| 功能 | 狀態 |
+|---|---|
+| Chrome 擴充功能 UI | ✅ 完成 |
+| 錢包餘額讀取（ETH/weETH/USDC） | ✅ 完成 |
+| 快捷操作按鈕 | ✅ 完成 |
+| Paraswap 即時報價 | ✅ 完成 |
+| Z.AI RAG 流程 | ✅ 完成 |
+| 持倉持久化（chrome.storage） | ✅ 完成 |
+| Demo 影片 | 🔜 錄製中 |
+| 主網實際交易 | 🔜 後續計劃 |
+
+## 後續計劃
+
+1. **串接 1inch 路由比較**：多個聚合器並排比較，讓用戶選最優解
+2. **一鍵發起交易**：生成 calldata 直接在 MetaMask / Rabby 發起，不需要跳轉網站
+3. **Rabby eth_call 模擬**：送出前先模擬執行，顯示預期結果與失敗風險
+4. **多鏈支援**：Base、Arbitrum 的 USDC 路由
+5. **Cobo Agentic Wallet 整合**：自動化定期再平衡，搭配策略審批流程
+
+---
+
+## 合規聲明
+
+- 本項目於本次 Hackathon 期間完成
+- 使用 Sepolia 測試網，未涉及真實資產自動操作
+- 所有鏈上操作需用戶在錢包手動確認，插件不持有任何私鑰
+- 第三方工具：Z.AI API、Paraswap API（開放免費使用）、Claude Code（輔助開發）
+
+---
+
+## 團隊資訊
+
+| 成員 | 角色 | 聯絡 |
 |---|---|---|
-| Embeddings | 問題與知識庫段落向量化 | `embedding-3` |
-| Rerank | Top-5 候選段落重排序，選出最相關 2 篇 | `rerank` |
-| Chat Completions | 根據即時報價 + 知識庫生成操作說明 | `glm-4-flash` |
+| Yufu Wu | 全端開發 | yufu.wu@gyro.com.tw |
 
-Base URL：`https://open.bigmodel.cn/api/paas/v4`
-
----
-
-## Hackathon 賽道說明
-
-**Z.AI 賽道 · Long-Horizon Task**
-
-NaviWeb3 展示 AI Agent 執行多步驟長程任務：
-
-1. 透過 `window.ethereum` 讀取用戶實際持倉
-2. Paraswap API 即時查詢最佳兌換路由
-3. Z.AI Embedding 語意搜尋知識庫
-4. Z.AI Rerank 精選最相關段落
-5. Z.AI GLM-4-Flash 整合即時數據 + 知識庫，生成具體操作建議
-
-五個步驟串成單一流暢體驗，從「我有多少幣」到「我該怎麼操作」一鍵完成。
+錢包地址：`0x1f066352df53d05737872598575cb6e828a77eec`（Sepolia）
