@@ -36,23 +36,33 @@ NaviWeb3 把這三步壓縮成一個動作：打開插件、點快捷按鈕、30
 ## 技術架構
 
 ```
-Chrome Extension (popup.html + popup.js)
-    │
-    ├── window.ethereum → 讀取 MetaMask / Rabby 持倉餘額
-    │
-    └── fetch POST http://localhost:8000/query
-              │
-         FastAPI (backend/main.py)
-              │
-              ├── Paraswap API → 即時兌換報價（最佳路由 + Gas）
-              │
-              ├── Z.AI Embedding API → 問題向量化
-              │        ↓
-              ├── Cosine Similarity → 知識庫搜尋 Top-5
-              │        ↓
-              ├── Z.AI Rerank API → 精選 Top-2 段落
-              │        ↓
-              └── Z.AI GLM-4-Flash → 整合報價 + 知識庫，生成操作建議
+你的 MetaMask / Rabby                    Cobo Agentic Wallet
+(用戶錢包，read-only)                    (0x1f066352...，執行層)
+        │                                        │
+        │ window.ethereum                        │ Cobo SDK
+        │ 讀取 ETH / weETH / USDC 餘額           │ 發出鏈上交易
+        ▼                                        ▼
+┌─────────────────────────────────────────────────────┐
+│            Chrome Extension (popup.js)              │
+│   連接錢包 → 快捷按鈕 → 填入問題 → 執行交易           │
+└──────────────────────┬──────────────────────────────┘
+                       │ fetch POST /query 或 /execute
+                       ▼
+              FastAPI (backend/main.py)
+                       │
+         ┌─────────────┼──────────────────┐
+         ▼             ▼                  ▼
+   Paraswap API    Z.AI Embedding      Cobo Agentic
+   即時兌換報價     問題向量化           Wallet API
+   最佳路由+Gas         ↓               提交 Pact →
+                  Cosine Similarity     等待確認 →
+                  知識庫 Top-5          廣播交易 →
+                         ↓              Etherscan ↗
+                  Z.AI Rerank
+                  精選 Top-2
+                         ↓
+                  GLM-4-Flash
+                  生成操作建議
 ```
 
 ## 使用的 API / SDK / AI 工具
