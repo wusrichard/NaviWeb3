@@ -8,8 +8,22 @@ async function loadCoboBalance() {
   try {
     const resp = await fetch('http://localhost:8000/cobo-balance');
     const data = await resp.json();
-    if (el) el.textContent = `Cobo 可用：${data.balance} SETH`;
-    return parseFloat(data.balance);
+    const bal = data.balance;
+    if (el) el.textContent = `Cobo 可用：${bal} SETH`;
+
+    // 更新頂部錢包列
+    document.getElementById('walletStatus').textContent = `${shortAddr(COBO_ADDR)} · Sepolia (Cobo)`;
+    document.getElementById('walletStatus').className = 'wallet-status connected';
+    document.getElementById('ethBal').textContent = `${bal} SETH ★`;
+    document.getElementById('weethBal').textContent = '0.00';
+    document.getElementById('usdcBal').textContent = '0.00';
+    document.getElementById('walletBalances').style.display = 'flex';
+    document.getElementById('connectBtn').textContent = '更新';
+    document.getElementById('execUnit').textContent = 'SETH';
+    updateQuickButtons('eth');
+    walletContext = `Cobo 錢包：${shortAddr(COBO_ADDR)}，網路：Sepolia，持有 ${bal} SETH。`;
+
+    return parseFloat(bal);
   } catch {
     if (el) el.textContent = 'Cobo 可用：讀取失敗';
     return null;
@@ -58,10 +72,6 @@ function applyWalletUI(w) {
 }
 
 // ── 啟動時還原已存的錢包狀態 ──────────────────────────────
-
-chrome.storage.local.get(['wallet'], ({ wallet }) => {
-  if (wallet) applyWalletUI(wallet);
-});
 
 loadCoboBalance();
 
@@ -115,21 +125,10 @@ async function readWalletFromPage() {
 
 document.getElementById('connectBtn').addEventListener('click', async () => {
   const btn = document.getElementById('connectBtn');
-  const status = document.getElementById('walletStatus');
   btn.disabled = true;
   btn.textContent = '讀取中…';
-
-  try {
-    const w = await readWalletFromPage();
-    applyWalletUI(w);
-    chrome.storage.local.set({ wallet: w }); // 存起來，下次開 popup 自動還原
-  } catch (e) {
-    status.textContent = `⚠️ ${e.message}`;
-    status.className = 'wallet-status';
-    btn.textContent = '重試';
-  } finally {
-    btn.disabled = false;
-  }
+  await loadCoboBalance();
+  btn.disabled = false;
 });
 
 // ── 快捷操作按鈕 ──────────────────────────────────────────
