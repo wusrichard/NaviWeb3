@@ -168,6 +168,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     const data = await resp.json();
     box.className = 'result-box';
     box.textContent = data.suggestion || '（未收到回應）';
+    document.getElementById('executeSection').style.display = 'block';
   } catch (e) {
     box.className = 'result-box';
     box.innerHTML = `<span class="error">⚠️ ${e.message}</span>`;
@@ -180,5 +181,43 @@ document.getElementById('question').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     document.getElementById('submitBtn').click();
+  }
+});
+
+// ── Cobo 執行交易 ──────────────────────────────────────────
+
+document.getElementById('executeBtn').addEventListener('click', async () => {
+  const addr = document.getElementById('execAddr').value.trim();
+  const amount = document.getElementById('execAmount').value.trim();
+  const result = document.getElementById('execResult');
+
+  if (!addr || !amount) {
+    result.style.color = '#f87171';
+    result.textContent = '請填入地址與金額';
+    return;
+  }
+
+  const btn = document.getElementById('executeBtn');
+  btn.disabled = true;
+  btn.textContent = '送出中…';
+  result.style.color = '#64748b';
+  result.textContent = '等待 Cobo 確認…';
+
+  try {
+    const resp = await fetch('http://localhost:8000/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dst_addr: addr, amount, chain_id: 'SETH', token_id: 'SETH' }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || `HTTP ${resp.status}`);
+    result.style.color = '#34d399';
+    result.textContent = `✅ 已送出！tx_id: ${data.tx_id}`;
+  } catch (e) {
+    result.style.color = '#f87171';
+    result.textContent = `⚠️ ${e.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ 用 Cobo Wallet 執行交易';
   }
 });

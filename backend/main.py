@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 import numpy as np
@@ -6,6 +7,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from cobo_agentic_wallet.client import WalletAPIClient
+from cobo_agentic_wallet.errors import PolicyDeniedError
 
 from knowledge import KNOWLEDGE
 
@@ -13,6 +16,10 @@ load_dotenv()
 
 ZAI_API_KEY = os.getenv("ZAI_API_KEY")
 ZAI_BASE_URL = "https://open.bigmodel.cn/api/paas/v4"
+
+COBO_API_KEY  = os.getenv("COBO_API_KEY")
+COBO_API_URL  = os.getenv("COBO_API_URL", "https://api.agenticwallet.cobo.com")
+COBO_WALLET_ID = os.getenv("COBO_WALLET_ID")
 
 # ── Token 地址 ────────────────────────────────────────────
 TOKENS = {
@@ -227,5 +234,82 @@ async def query(req: QueryRequest):
         raise HTTPException(status_code=502, detail=f"Z.AI API 錯誤 {e.response.status_code}: {body}")
     except requests.exceptions.Timeout:
         raise HTTPException(status_code=504, detail="Z.AI API 請求逾時，請稍後再試")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Cobo 執行交易 ─────────────────────────────────────────
+
+class ExecuteRequest(BaseModel):
+    dst_addr: str
+    amount: str
+    chain_id: str = "SETH"
+    token_id: str = "SETH"
+
+
+@app.post("/execute")
+async def execute(req: ExecuteRequest):
+    if not COBO_API_KEY or not COBO_WALLET_ID:
+        raise HTTPException(status_code=500, detail="Cobo 憑證未設定")
+
+    pact_spec = {
+        "policies": [{
+            "name": "allow-transfer",
+            "type": "transfer",
+            "rules": {
+                "effect": "allow",
+                "when": {
+                    "chain_in": [req.chain_id],
+                    "token_in": [{"chain_id": req.chain_id, "token_id": req.token_id}],
+                },
+            },
+        }],
+        "completion_conditions": [{"type": "tx_count", "threshold": "1"}],
+    }
+
+    try:
+        async with WalletAPIClient(base_url=COBO_API_URL, api_key=COBO_API_KEY) as client:
+            # 提交 pact（無配對時立即 active）
+            pact_resp = await client.submit_pact(
+                wallet_id=COBO_WALLET_ID,
+                intent=f"NaviWeb3 transfer {req.amount} {req.token_id} to {req.dst_addr}",
+                spec=pact_spec,
+            )
+            pact_id = pact_resp["pact_id"]
+
+            # 輪詢等待 active（無配對約 1-3 秒）
+            for _ in range(20):
+                pact = await client.get_pact(pact_id)
+                status = pact.get("status", "")
+                if status == "active":
+                    break
+                if status in ("rejected", "expired", "revoked"):
+                    raise HTTPException(status_code=400, detail=f"Pact 狀態異常：{status}")
+                await asyncio.sleep(1)
+            else:
+                raise HTTPException(status_code=408, detail="Pact 等待逾時")
+
+            # 用 pact-scoped key 執行交易
+            async with WalletAPIClient(base_url=COBO_API_URL, api_key=pact["api_key"]) as pact_client:
+                tx = await pact_client.transfer_tokens(
+                    COBO_WALLET_ID,
+                    chain_id=req.chain_id,
+                    src_addr="0x1f066352df53d05737872598575cb6e828a77eec",
+                    dst_addr=req.dst_addr,
+                    token_id=req.token_id,
+                    amount=req.amount,
+                )
+
+            return {
+                "tx_id": tx.get("id"),
+                "status": tx.get("status"),
+                "request_id": tx.get("request_id"),
+                "pact_id": pact_id,
+            }
+
+    except PolicyDeniedError as exc:
+        raise HTTPException(status_code=403, detail=f"Policy 拒絕：{exc.denial.reason}")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
