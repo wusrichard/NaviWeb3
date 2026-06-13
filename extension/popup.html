@@ -287,7 +287,10 @@
     <div class="label">執行交易（Cobo Wallet · Sepolia）</div>
     <div style="display:flex; gap:6px; margin-bottom:6px;">
       <input id="execAddr" placeholder="目標地址 0x..." style="flex:1;padding:7px 10px;background:#1a1f35;border:1px solid #2d3748;border-radius:8px;color:#e2e8f0;font-size:12px;outline:none;font-family:inherit;"/>
-      <input id="execAmount" placeholder="SETH" style="width:72px;padding:7px 8px;background:#1a1f35;border:1px solid #2d3748;border-radius:8px;color:#e2e8f0;font-size:12px;outline:none;font-family:inherit;"/>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input id="execAmount" placeholder="0.001" style="width:60px;padding:7px 8px;background:#1a1f35;border:1px solid #2d3748;border-radius:8px;color:#e2e8f0;font-size:12px;outline:none;font-family:inherit;"/>
+        <span id="execUnit" style="font-size:11px;color:#a78bfa;font-weight:600;">SETH</span>
+      </div>
     </div>
     <button id="executeBtn" style="width:100%;padding:9px;background:linear-gradient(135deg,#059669,#10b981);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">⚡ 用 Cobo Wallet 執行交易</button>
     <div id="execResult" style="margin-top:6px;font-size:11px;color:#64748b;word-break:break-all;"></div>

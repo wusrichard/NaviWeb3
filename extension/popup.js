@@ -14,14 +14,33 @@ function shortAddr(addr) {
 
 function applyWalletUI(w) {
   const chainName = CHAIN_NAMES[w.chainId] || `Chain ${w.chainId}`;
+  const isTestnet = w.chainId === 11155111;
+  const ethUnit = isTestnet ? 'SETH' : 'ETH';
+
+  // 找最高餘額的 token，加星號標示
+  const balances = [
+    { id: 'ethBal',   val: parseFloat(w.ethBalance),   unit: ethUnit },
+    { id: 'weethBal', val: parseFloat(w.weETHBalance), unit: 'weETH' },
+    { id: 'usdcBal',  val: parseFloat(w.usdcBalance),  unit: 'USDC' },
+  ];
+  const maxIdx = balances.reduce((m, b, i) => b.val > balances[m].val ? i : m, 0);
+
   document.getElementById('walletStatus').textContent = `${shortAddr(w.address)} · ${chainName}`;
   document.getElementById('walletStatus').className = 'wallet-status connected';
-  document.getElementById('ethBal').textContent = w.ethBalance;
-  document.getElementById('weethBal').textContent = w.weETHBalance;
-  document.getElementById('usdcBal').textContent = w.usdcBalance;
+  document.getElementById('ethBal').textContent = `${w.ethBalance} ${ethUnit}${maxIdx === 0 ? ' ★' : ''}`;
+  document.getElementById('weethBal').textContent = `${w.weETHBalance}${maxIdx === 1 ? ' ★' : ''}`;
+  document.getElementById('usdcBal').textContent = `${w.usdcBalance}${maxIdx === 2 ? ' ★' : ''}`;
   document.getElementById('walletBalances').style.display = 'flex';
   document.getElementById('connectBtn').textContent = '更新';
-  walletContext = `我的錢包：${shortAddr(w.address)}，網路：${chainName}，持有 ${w.ethBalance} ETH、${w.weETHBalance} weETH、${w.usdcBalance} USDC。`;
+
+  // 執行區塊的單位同步
+  document.getElementById('execUnit').textContent = ethUnit;
+
+  // 更新快捷按鈕對應最多資產
+  const topKey = ['eth', 'weeth', 'usdc'][maxIdx];
+  updateQuickButtons(topKey);
+
+  walletContext = `我的錢包：${shortAddr(w.address)}，網路：${chainName}，持有 ${w.ethBalance} ${ethUnit}、${w.weETHBalance} weETH、${w.usdcBalance} USDC。最多資產：${balances[maxIdx].val} ${balances[maxIdx].unit}。`;
 }
 
 // ── 啟動時還原已存的錢包狀態 ──────────────────────────────
@@ -29,6 +48,7 @@ function applyWalletUI(w) {
 chrome.storage.local.get(['wallet'], ({ wallet }) => {
   if (wallet) applyWalletUI(wallet);
 });
+
 
 // ── 從頁面讀取錢包 ────────────────────────────────────────
 
@@ -98,16 +118,42 @@ document.getElementById('connectBtn').addEventListener('click', async () => {
 
 // ── 快捷操作按鈕 ──────────────────────────────────────────
 
-const QUICK_ACTIONS = [
-  { label: 'USDC → ETH', protocol: 'curve',       question: (w) => `我有 ${w.usdc} USDC，想換成 ETH，透過 Curve 最划算的路徑是？請給步驟和費用。` },
-  { label: 'ETH → weETH', protocol: 'etherfi',    question: (w) => `我有 ${w.eth} ETH，想質押成 weETH 賺利息，步驟和費用是？` },
-  { label: 'weETH → ETH', protocol: 'etherfi',    question: (w) => `我有 ${w.weeth} weETH，想換回 ETH，最快路徑和費用是？` },
-  { label: '查看收益',     protocol: 'etherfi',    question: (w) => `我持有 ${w.eth} ETH 和 ${w.weeth} weETH，目前各協議的年化收益如何？哪個最划算？` },
-];
+const ACTIONS_BY_TOP = {
+  eth: [
+    { label: 'ETH → weETH', protocol: 'etherfi', question: (w) => `我有 ${w.eth} ETH，想質押成 weETH 賺利息，步驟和費用是？` },
+    { label: 'ETH → USDC',  protocol: 'curve',   question: (w) => `我有 ${w.eth} ETH，想換成 USDC 穩定幣，最划算路徑和費用？` },
+    { label: '查看收益',     protocol: 'etherfi', question: (w) => `我持有 ${w.eth} ETH，各協議質押年化收益如何？哪個最划算？` },
+    { label: 'Hyperliquid', protocol: 'hyperliquid', question: (w) => `我有 ${w.eth} ETH，怎麼存入 Hyperliquid 交易？步驟和費用？` },
+  ],
+  weeth: [
+    { label: 'weETH → ETH', protocol: 'etherfi', question: (w) => `我有 ${w.weeth} weETH，想換回 ETH，最快路徑和費用是？` },
+    { label: 'weETH → USDC',protocol: 'curve',   question: (w) => `我有 ${w.weeth} weETH，想換成 USDC，步驟和費用？` },
+    { label: '查看收益',     protocol: 'etherfi', question: (w) => `我有 ${w.weeth} weETH，目前年化收益多少？有更好的策略嗎？` },
+    { label: 'Curve 池',    protocol: 'curve',   question: (w) => `我有 ${w.weeth} weETH，在 Curve 提供流動性的步驟和 APY？` },
+  ],
+  usdc: [
+    { label: 'USDC → ETH',  protocol: 'curve',   question: (w) => `我有 ${w.usdc} USDC，想換成 ETH，透過 Curve 最划算的路徑是？請給步驟和費用。` },
+    { label: 'USDC → weETH',protocol: 'etherfi', question: (w) => `我有 ${w.usdc} USDC，想換成 weETH 賺質押收益，步驟和費用？` },
+    { label: '查看收益',     protocol: 'curve',   question: (w) => `我有 ${w.usdc} USDC，在 Curve 穩定幣池提供流動性的 APY 和步驟？` },
+    { label: 'Hyperliquid', protocol: 'hyperliquid', question: (w) => `我有 ${w.usdc} USDC，存入 Hyperliquid 的步驟和費用？` },
+  ],
+};
+
+let currentTopToken = 'eth';
+
+function updateQuickButtons(topToken) {
+  currentTopToken = topToken;
+  const actions = ACTIONS_BY_TOP[topToken];
+  document.querySelectorAll('.quick-btn').forEach((btn, i) => {
+    if (actions[i]) btn.textContent = actions[i].label;
+  });
+}
 
 document.querySelectorAll('.quick-btn').forEach((btn, i) => {
   btn.addEventListener('click', () => {
-    const action = QUICK_ACTIONS[i];
+    const actions = ACTIONS_BY_TOP[currentTopToken];
+    const action = actions[i];
+    if (!action) return;
     selectedProtocol = action.protocol;
 
     chrome.storage.local.get(['wallet'], ({ wallet }) => {
