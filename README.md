@@ -128,6 +128,7 @@ uvicorn main:app --port 8000 --reload
 | Cobo Agentic Wallet 地址 | `0x1f066352df53d05737872598575cb6e828a77eec` |
 | Wallet UUID | `2f654afd-3a9e-4029-9212-e79350f8b1e5` |
 | 測試網路 | Sepolia Testnet (Chain ID: 11155111) |
+| 鏈上交易（已確認） | [`0xa83ab3...a28b93`](https://sepolia.etherscan.io/tx/0xa83ab328e0fefb18468d3627841c1008fa2d571b53530e5664f26837f3a28b93) |
 | Paraswap API 查詢 | 每次插件查詢即發生鏈上報價請求（Ethereum Mainnet 路由） |
 
 ---

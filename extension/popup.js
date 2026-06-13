@@ -169,6 +169,11 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     box.className = 'result-box';
     box.textContent = data.suggestion || '（未收到回應）';
     document.getElementById('executeSection').style.display = 'block';
+    // 自動帶入錢包地址與預設金額
+    chrome.storage.local.get(['wallet'], ({ wallet }) => {
+      if (wallet?.address) document.getElementById('execAddr').value = wallet.address;
+      if (!document.getElementById('execAmount').value) document.getElementById('execAmount').value = '0.001';
+    });
   } catch (e) {
     box.className = 'result-box';
     box.innerHTML = `<span class="error">⚠️ ${e.message}</span>`;
