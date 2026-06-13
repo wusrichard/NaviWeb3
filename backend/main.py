@@ -313,3 +313,14 @@ async def execute(req: ExecuteRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/tx-status/{tx_id}")
+async def tx_status(tx_id: str):
+    async with WalletAPIClient(base_url=COBO_API_URL, api_key=COBO_API_KEY) as client:
+        tx = await client.get_transaction_record(tx_id)
+        return {
+            "status": tx.get("status"),
+            "hash": tx.get("transaction_hash"),
+            "chain_id": tx.get("chain_id", "SETH"),
+        }

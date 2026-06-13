@@ -262,8 +262,28 @@ document.getElementById('executeBtn').addEventListener('click', async () => {
     });
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.detail || `HTTP ${resp.status}`);
+
     result.style.color = '#34d399';
-    result.textContent = `✅ 已送出！tx_id: ${data.tx_id}`;
+    result.textContent = `✅ 交易送出中，等待確認…`;
+
+    // 輪詢直到拿到 transaction_hash
+    const txId = data.tx_id;
+    let hash = null;
+    for (let i = 0; i < 30; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      try {
+        const sr = await fetch(`http://localhost:8000/tx-status/${txId}`);
+        const sd = await sr.json();
+        if (sd.hash) { hash = sd.hash; break; }
+      } catch (_) {}
+    }
+
+    if (hash) {
+      const url = `https://sepolia.etherscan.io/tx/${hash}`;
+      result.innerHTML = `✅ 交易成功！<a href="${url}" target="_blank" style="color:#818cf8;text-decoration:underline;">在 Etherscan 查看 ↗</a>`;
+    } else {
+      result.textContent = `✅ 已送出！tx_id: ${txId}（確認中）`;
+    }
   } catch (e) {
     result.style.color = '#f87171';
     result.textContent = `⚠️ ${e.message}`;
