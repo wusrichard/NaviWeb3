@@ -1,6 +1,26 @@
 const API_URL = 'http://localhost:8000/query';
+const COBO_ADDR = '0x1f066352df53d05737872598575cb6e828a77eec';
+const SEPOLIA_RPC = 'https://rpc.sepolia.org';
 let selectedProtocol = 'etherfi';
 let walletContext = '';
+
+async function loadCoboBalance() {
+  const el = document.getElementById('coboBalance');
+  try {
+    const resp = await fetch(SEPOLIA_RPC, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getBalance', params: [COBO_ADDR, 'latest'], id: 1 }),
+    });
+    const data = await resp.json();
+    const bal = (parseInt(data.result, 16) / 1e18).toFixed(4);
+    if (el) el.textContent = `Cobo 可用：${bal} SETH`;
+    return parseFloat(bal);
+  } catch {
+    if (el) el.textContent = 'Cobo 可用：讀取失敗';
+    return null;
+  }
+}
 
 const CHAIN_NAMES = { 1: 'Ethereum', 11155111: 'Sepolia', 8453: 'Base', 42161: 'Arbitrum' };
 const WEETH_ADDR = { 1: '0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee' };
@@ -48,6 +68,8 @@ function applyWalletUI(w) {
 chrome.storage.local.get(['wallet'], ({ wallet }) => {
   if (wallet) applyWalletUI(wallet);
 });
+
+loadCoboBalance();
 
 
 // ── 從頁面讀取錢包 ────────────────────────────────────────
@@ -215,6 +237,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     box.className = 'result-box';
     box.textContent = data.suggestion || '（未收到回應）';
     document.getElementById('executeSection').style.display = 'block';
+    loadCoboBalance();
     // 自動帶入錢包地址與預設金額
     chrome.storage.local.get(['wallet'], ({ wallet }) => {
       if (wallet?.address) document.getElementById('execAddr').value = wallet.address;
@@ -255,6 +278,12 @@ document.getElementById('executeBtn').addEventListener('click', async () => {
   result.textContent = '等待 Cobo 確認…';
 
   try {
+    // 檢查 Cobo 餘額夠不夠
+    const coboBal = await loadCoboBalance();
+    if (coboBal !== null && parseFloat(amount) > coboBal) {
+      throw new Error(`Cobo 餘額不足（可用 ${coboBal} SETH，需要 ${amount} SETH）`);
+    }
+
     const resp = await fetch('http://localhost:8000/execute', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -278,7 +307,7 @@ document.getElementById('executeBtn').addEventListener('click', async () => {
       } catch (_) {}
     }
 
-    const COBO_ADDR = '0x1f066352df53d05737872598575cb6e828a77eec';
+    loadCoboBalance(); // 交易後更新餘額
     if (hash) {
       const url = `https://sepolia.etherscan.io/tx/${hash}`;
       result.innerHTML = `✅ 交易成功！<a href="${url}" target="_blank" style="color:#818cf8;text-decoration:underline;">在 Etherscan 查看 ↗</a>`;
