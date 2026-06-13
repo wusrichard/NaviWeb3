@@ -278,11 +278,13 @@ document.getElementById('executeBtn').addEventListener('click', async () => {
       } catch (_) {}
     }
 
+    const COBO_ADDR = '0x1f066352df53d05737872598575cb6e828a77eec';
     if (hash) {
       const url = `https://sepolia.etherscan.io/tx/${hash}`;
       result.innerHTML = `✅ 交易成功！<a href="${url}" target="_blank" style="color:#818cf8;text-decoration:underline;">在 Etherscan 查看 ↗</a>`;
     } else {
-      result.textContent = `✅ 已送出！tx_id: ${txId}（確認中）`;
+      const url = `https://sepolia.etherscan.io/address/${COBO_ADDR}`;
+      result.innerHTML = `✅ 已送出！<a href="${url}" target="_blank" style="color:#818cf8;text-decoration:underline;">在 Etherscan 查看確認狀態 ↗</a>`;
     }
   } catch (e) {
     result.style.color = '#f87171';
