@@ -313,8 +313,8 @@ async def execute(req: ExecuteRequest):
                 },
             },
         }],
-        # threshold 需為整數；字串 "1" 可能導致條件永遠不觸發
-        "completion_conditions": [{"type": "tx_count", "threshold": 1}],
+        # Cobo API 要求 threshold 為字串型別
+        "completion_conditions": [{"type": "tx_count", "threshold": "1"}],
     }
 
     try:
