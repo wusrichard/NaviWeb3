@@ -67,37 +67,6 @@
       letter-spacing: 0.05em;
     }
 
-    .protocol-group {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .protocol-btn {
-      flex: 1;
-      padding: 8px 4px;
-      background: #1a1f35;
-      border: 1px solid #2d3748;
-      border-radius: 8px;
-      color: #94a3b8;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      text-align: center;
-    }
-
-    .protocol-btn:hover {
-      border-color: #6366f1;
-      color: #c7d2fe;
-    }
-
-    .protocol-btn.active {
-      background: linear-gradient(135deg, #312e81, #1e1b4b);
-      border-color: #6366f1;
-      color: #a5b4fc;
-      box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
-    }
 
     textarea {
       width: 100%;
@@ -197,6 +166,77 @@
 
     .error { color: #f87171; font-size: 13px; }
 
+    .wallet-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #111827;
+      border-bottom: 1px solid #1e293b;
+      padding: 8px 20px;
+      min-height: 38px;
+    }
+
+    .wallet-status {
+      font-size: 11px;
+      color: #475569;
+    }
+
+    .wallet-status.connected {
+      color: #34d399;
+    }
+
+    .wallet-balances {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .bal-eth { color: #818cf8; }
+    .bal-weeth { color: #a78bfa; }
+    .bal-usdc { color: #34d399; }
+
+    .quick-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .quick-btn {
+      padding: 7px 6px;
+      background: #1a1f35;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .quick-btn:hover {
+      border-color: #a78bfa;
+      color: #c4b5fd;
+      background: #1e1b4b;
+    }
+
+    .btn-wallet {
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid #374151;
+      border-radius: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-wallet:hover { border-color: #6366f1; color: #a5b4fc; }
+    .btn-wallet:disabled { opacity: 0.4; cursor: not-allowed; }
+
     .footer {
       padding: 10px 20px;
       border-top: 1px solid #1e293b;
@@ -216,12 +256,23 @@
   <div class="subtitle">DeFi 操作路徑 AI 顧問</div>
 </div>
 
+<div class="wallet-bar">
+  <div id="walletStatus" class="wallet-status">未連接錢包</div>
+  <div id="walletBalances" class="wallet-balances" style="display:none">
+    <span class="bal-eth">ETH: <b id="ethBal">-</b></span>
+    <span class="bal-weeth">weETH: <b id="weethBal">-</b></span>
+    <span class="bal-usdc">USDC: <b id="usdcBal">-</b></span>
+  </div>
+  <button class="btn-wallet" id="connectBtn">連接錢包</button>
+</div>
+
 <div class="main">
-  <div class="label">選擇協議</div>
-  <div class="protocol-group">
-    <button class="protocol-btn active" data-protocol="etherfi">ether.fi</button>
-    <button class="protocol-btn" data-protocol="curve">Curve</button>
-    <button class="protocol-btn" data-protocol="hyperliquid">Hyperliquid</button>
+  <div class="label">快捷操作</div>
+  <div class="quick-group">
+    <button class="quick-btn">USDC → ETH</button>
+    <button class="quick-btn">ETH → weETH</button>
+    <button class="quick-btn">weETH → ETH</button>
+    <button class="quick-btn">查看收益</button>
   </div>
 
   <div class="label">你的問題</div>
@@ -238,70 +289,7 @@
 
 <div class="footer">Powered by Z.AI GLM-4-Flash · NaviWeb3</div>
 
-<script>
-  const API_URL = 'http://localhost:8000/query';
-  let selectedProtocol = 'etherfi';
-
-  // protocol selector
-  document.querySelectorAll('.protocol-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.protocol-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedProtocol = btn.dataset.protocol;
-    });
-  });
-
-  // clear
-  document.getElementById('clearBtn').addEventListener('click', () => {
-    document.getElementById('question').value = '';
-    const box = document.getElementById('resultBox');
-    box.textContent = '等待你的問題…';
-    box.className = 'result-box empty';
-  });
-
-  // submit
-  document.getElementById('submitBtn').addEventListener('click', async () => {
-    const question = document.getElementById('question').value.trim();
-    if (!question) return;
-
-    const btn = document.getElementById('submitBtn');
-    const box = document.getElementById('resultBox');
-
-    btn.disabled = true;
-    box.className = 'result-box';
-    box.innerHTML = '<div class="loading"><div class="spinner"></div>AI 顧問思考中…</div>';
-
-    try {
-      const resp = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ protocol: selectedProtocol, question }),
-      });
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.detail || `HTTP ${resp.status}`);
-      }
-
-      const data = await resp.json();
-      box.className = 'result-box';
-      box.textContent = data.suggestion || '（未收到回應）';
-    } catch (e) {
-      box.className = 'result-box';
-      box.innerHTML = `<span class="error">⚠️ ${e.message}</span>`;
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  // enter to submit (shift+enter for newline)
-  document.getElementById('question').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      document.getElementById('submitBtn').click();
-    }
-  });
-</script>
+<script src="popup.js"></script>
 
 </body>
 </html>
