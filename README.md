@@ -1,6 +1,6 @@
 # NaviWeb3
 
-> **一句話簡介**：Chrome 擴充功能，讀取你的 MetaMask / Rabby 持倉，即時查詢最佳兌換路由，用 AI 生成具體 DeFi 操作步驟。
+> **一句話簡介**：Chrome 擴充功能，串接 Cobo Agentic Wallet，讓 AI 從建議到鏈上執行一條龍完成，不需要用戶手動操作任何 DeFi 協議。
 
 ---
 
@@ -10,14 +10,15 @@ DeFi 用戶每次操作都需要：
 1. 手動查詢各平台匯率（Curve / Uniswap / 1inch）
 2. 估算 Gas 費
 3. 搜尋操作步驟文件
+4. 切換到錢包手動確認交易
 
-NaviWeb3 把這三步壓縮成一個動作：打開插件、點快捷按鈕、30 秒內拿到含真實報價的操作指南。
+NaviWeb3 把這四步壓縮成一個動作：打開插件、點快捷按鈕、AI 給出建議並透過 Cobo Agentic Wallet 自主執行鏈上操作。
 
 ## 目標用戶
 
-- DeFi 新手：不知道怎麼把 USDC 換成 ETH 最划算
+- DeFi 新手：不知道怎麼操作、不懂 Gas 費
 - 中級用戶：每次操作都要切換多個平台比較費率
-- 任何持有 weETH / USDC 的錢包用戶
+- 任何想要「說一句話，Agent 幫你執行」的 Web3 用戶
 
 ---
 
@@ -25,11 +26,12 @@ NaviWeb3 把這三步壓縮成一個動作：打開插件、點快捷按鈕、30
 
 | 功能 | 說明 |
 |---|---|
-| 🔗 讀取錢包持倉 | 透過 `window.ethereum` 讀取 ETH / weETH / USDC 餘額，持久化存儲 |
-| ⚡ 快捷操作按鈕 | 一鍵帶入持倉，自動填入查詢（USDC→ETH、ETH→weETH 等） |
+| 💰 Cobo 錢包餘額 | 自動讀取 Cobo Agentic Wallet 鏈上 SETH 餘額，無需手動連接 |
+| ⚡ 快捷操作按鈕 | 根據持倉自動填入查詢（ETH→weETH、ETH→USDC 等） |
 | 📊 即時報價 | 串接 Paraswap Aggregation API，回傳最佳路由與 Gas 費用 |
 | 🤖 AI 步驟說明 | Z.AI GLM-4-Flash 根據即時報價 + 知識庫生成繁體中文操作步驟 |
 | 🔍 語意搜尋 | Z.AI Embedding + Rerank 從 DeFi 知識庫精選最相關段落 |
+| ⛓️ 鏈上自主執行 | Cobo Agentic Wallet 自主廣播交易，無需用戶手動操作錢包 |
 
 ---
 
@@ -148,18 +150,18 @@ uvicorn main:app --port 8000 --reload
 | 功能 | 狀態 |
 |---|---|
 | Chrome 擴充功能 UI | ✅ 完成 |
-| 錢包餘額讀取（ETH/weETH/USDC） | ✅ 完成 |
-| 快捷操作按鈕 | ✅ 完成 |
+| Cobo Agentic Wallet 餘額讀取 | ✅ 完成 |
+| 快捷操作按鈕（根據持倉動態調整） | ✅ 完成 |
 | Paraswap 即時報價 | ✅ 完成 |
 | Z.AI RAG 流程 | ✅ 完成 |
-| 持倉持久化（chrome.storage） | ✅ 完成 |
+| Cobo 鏈上自主執行（資金調撥） | ✅ 完成（Sepolia 已驗證） |
 | Demo 影片 | 🔜 錄製中 |
-| 主網實際交易 | 🔜 後續計劃 |
+| 直接 call 協議合約（deposit / swap） | 🔜 下一版 |
 
 ## 後續計劃
 
-1. **串接 1inch 路由比較**：多個聚合器並排比較，讓用戶選最優解
-2. **一鍵發起交易**：生成 calldata 直接在 MetaMask / Rabby 發起，不需要跳轉網站
+1. **直接 call 協議合約**：Cobo 直接呼叫 EtherFi `deposit()`、Curve `exchange()`，無需用戶手動點網頁，完成真正的 Long-Horizon Task
+2. **串接 1inch 路由比較**：多個聚合器並排比較，讓用戶選最優解
 3. **Rabby eth_call 模擬**：送出前先模擬執行，顯示預期結果與失敗風險
 4. **多鏈支援**：Base、Arbitrum 的 USDC 路由
 5. **Cobo Agentic Wallet 整合**：自動化定期再平衡，搭配策略審批流程
