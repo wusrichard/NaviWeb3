@@ -1,21 +1,15 @@
 const API_URL = 'http://localhost:8000/query';
 const COBO_ADDR = '0x1f066352df53d05737872598575cb6e828a77eec';
-const SEPOLIA_RPC = 'https://rpc.sepolia.org';
 let selectedProtocol = 'etherfi';
 let walletContext = '';
 
 async function loadCoboBalance() {
   const el = document.getElementById('coboBalance');
   try {
-    const resp = await fetch(SEPOLIA_RPC, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getBalance', params: [COBO_ADDR, 'latest'], id: 1 }),
-    });
+    const resp = await fetch('http://localhost:8000/cobo-balance');
     const data = await resp.json();
-    const bal = (parseInt(data.result, 16) / 1e18).toFixed(4);
-    if (el) el.textContent = `Cobo 可用：${bal} SETH`;
-    return parseFloat(bal);
+    if (el) el.textContent = `Cobo 可用：${data.balance} SETH`;
+    return parseFloat(data.balance);
   } catch {
     if (el) el.textContent = 'Cobo 可用：讀取失敗';
     return null;

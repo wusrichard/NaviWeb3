@@ -315,6 +315,22 @@ async def execute(req: ExecuteRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/cobo-balance")
+async def cobo_balance():
+    try:
+        resp = requests.post(
+            "https://ethereum-sepolia-rpc.publicnode.com",
+            json={"jsonrpc": "2.0", "method": "eth_getBalance",
+                  "params": ["0x1f066352df53d05737872598575cb6e828a77eec", "latest"], "id": 1},
+            timeout=8,
+        )
+        result = resp.json().get("result", "0x0")
+        bal = round(int(result, 16) / 1e18, 4)
+        return {"balance": bal}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/tx-status/{tx_id}")
 async def tx_status(tx_id: str):
     async with WalletAPIClient(base_url=COBO_API_URL, api_key=COBO_API_KEY) as client:
